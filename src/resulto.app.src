@@ -1,7 +1,7 @@
 {application, resulto,
  [{description, "“A lightweight Erlang library for working with result types, implementing result monads for better error handling and chaining operations. It is based on elegant [homonimous) Gleam module.”
 "},
-  {vsn, "0.1.0"},
+  {vsn, "0.1.1"},
   {registered, []},
   {applications,
    [kernel,
