@@ -47,6 +47,7 @@
 -export([partition/1]).
 -export([replace/2]).
 -export([replace_error/2]).
+-export([result/1]).
 -export([then/2]).
 -export([then_recover/2]).
 -export([then_both/3]).
@@ -87,6 +88,18 @@ ok(Value) ->
 
 error(Error) ->
     {error, Error}.
+
+%% -----------------------------------------------------------------------------
+%% @doc
+%% @end
+%% -----------------------------------------------------------------------------
+-spec result(Term :: any()) -> t().
+
+result(ok) -> ok;
+result({ok, _} = T) -> T;
+result({error, _} = T) -> T;
+result(Term) -> ok(Term).
+
 
 
 %% -----------------------------------------------------------------------------
