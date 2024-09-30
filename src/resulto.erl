@@ -33,6 +33,7 @@
 -type error(T)  ::  {error, T}.
 
 
+-export(['try'/2]).
 -export([all/1]).
 -export([error/1]).
 -export([flatten/1]).
@@ -45,15 +46,16 @@
 -export([ok/1]).
 -export([or_else/2]).
 -export([partition/1]).
+-export([raise_or/1]).
+-export([raise_or_unwrap/1]).
 -export([replace/2]).
 -export([replace_error/2]).
 -export([result/1]).
 -export([then/2]).
--export([then_recover/2]).
 -export([then_both/3]).
--export(['try'/2]).
--export([try_recover/2]).
+-export([then_recover/2]).
 -export([try_both/3]).
+-export([try_recover/2]).
 -export([undefined_error/1]).
 -export([unwrap/2]).
 -export([unwrap_both/1]).
