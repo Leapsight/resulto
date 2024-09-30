@@ -207,6 +207,34 @@ lazy_unwrap({error, _}, Fun) when is_function(Fun, 0) ->
 
 
 %% -----------------------------------------------------------------------------
+%% @doc Returns the result if it is `ok`, otherwise raises an exception with the
+%% error value.
+%% @end
+%% -----------------------------------------------------------------------------
+-spec raise_or(t()) -> ok() | no_return().
+
+raise_or({ok, _} = Result) ->
+    Result;
+
+raise_or({error, Reason}) ->
+    erlang:error(Reason).
+
+
+%% -----------------------------------------------------------------------------
+%% @doc Returns the result value if it is `ok`, otherwise raises an exception
+%% with the error value.
+%% @end
+%% -----------------------------------------------------------------------------
+-spec raise_or_unwrap(t()) -> any() | no_return().
+
+raise_or_unwrap({ok, Value}) ->
+    Value;
+
+raise_or_unwrap({error, Reason}) ->
+    erlang:error(Reason).
+
+
+%% -----------------------------------------------------------------------------
 %% @doc Updates a value held within the `ok` of a result by calling a given
 %% function on it.
 %% If the result is an `error` rather than `ok` the function is not called and
