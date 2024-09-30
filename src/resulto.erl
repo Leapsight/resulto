@@ -91,6 +91,7 @@ ok(Value) ->
 error(Error) ->
     {error, Error}.
 
+
 %% -----------------------------------------------------------------------------
 %% @doc
 %% @end
@@ -202,8 +203,10 @@ lazy_or({error, _}, Fun) when is_function(Fun, 0) ->
 
 lazy_unwrap(ok, Fun) when is_function(Fun, 0) ->
     undefined;
+
 lazy_unwrap({ok, Value}, Fun) when is_function(Fun, 0) ->
     Value;
+
 lazy_unwrap({error, _}, Fun) when is_function(Fun, 0) ->
     Fun().
 
@@ -214,6 +217,9 @@ lazy_unwrap({error, _}, Fun) when is_function(Fun, 0) ->
 %% @end
 %% -----------------------------------------------------------------------------
 -spec raise_or(t()) -> ok() | no_return().
+
+raise_or(ok = Result) ->
+    Result;
 
 raise_or({ok, _} = Result) ->
     Result;
@@ -228,6 +234,9 @@ raise_or({error, Reason}) ->
 %% @end
 %% -----------------------------------------------------------------------------
 -spec raise_or_unwrap(t()) -> any() | no_return().
+
+raise_or_unwrap(ok) ->
+    undefined;
 
 raise_or_unwrap({ok, Value}) ->
     Value;
@@ -528,6 +537,18 @@ eval_result(Result0, Fun) when is_function(Fun, 0) ->
             Result;
         _ ->
             not_a_result([Result0, Fun], 2)
+    end;
+
+eval_result(ok, Fun) when is_function(Fun, 1) ->
+    case Fun(undefined) of
+        ok = Result ->
+            Result;
+        {ok, _} = Result ->
+            Result;
+        {error, _} = Result ->
+            Result;
+        _ ->
+            not_a_result([ok, Fun], 2)
     end;
 
 eval_result(Result0, Fun) when is_function(Fun, 1) ->
