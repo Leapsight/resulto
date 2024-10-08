@@ -1,6 +1,7 @@
 %% =============================================================================
 %%  resulto.erl -
 %%  Copyright (c) 2016-2024 Leapsight. All rights reserved.
+%%  Copyright 2018, Louis Pilfold <louis@lpil.uk>.
 %%
 %%  Licensed under the Apache License, Version 2.0 (the "License");
 %%  you may not use this file except in compliance with the License.
