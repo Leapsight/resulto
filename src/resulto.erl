@@ -1,6 +1,6 @@
 %% =============================================================================
 %%  resulto.erl -
-%%  Copyright (c) 2016-2024 Leapsight. All rights reserved.
+%%  Copyright (c) 2024-2025 Leapsight. All rights reserved.
 %%  Copyright 2018, Louis Pilfold <louis@lpil.uk>.
 %%
 %%  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,36 @@
 %%  limitations under the License.
 %% =============================================================================
 
-%% -----------------------------------------------------------------------------
-%% @doc Result represents the result of something that may succeed or not.
-%% `{ok, any()}` means it was successful, `{error, any()}` means it was not.
-%%
-%% Borrowed from the elegant [homonimous Gleam module]
-%% (https://hexdocs.pm/gleam_stdlib/gleam/result.html).
-%% @end
-%% -----------------------------------------------------------------------------
 -module(resulto).
 
+-if(?OTP_RELEASE >= 27).
+    -define(MODULEDOC(Str), -moduledoc(Str)).
+    -define(DOC(Str), -doc(Str)).
+-else.
+    -define(MODULEDOC(Str), -compile([])).
+    -define(DOC(Str), -compile([])).
+-endif.
 
+-moduledoc #{format => "text/markdown"}.
+?MODULEDOC("""
+Result represents the result of something that may succeed or not:
+* `{ok, any()}` means it was successful,
+* `{error, any()}` means it was not.
+
+Borrowed from the elegant Gleam's [result]
+(https://hexdocs.pm/gleam_stdlib/gleam/result.html) module.
+""").
+
+?DOC("""
+Represents a value that is either a success (`ok`, `{ok, Value}`) or a
+failure (`{error, Reason}`).
+""").
 -type t()       ::  ok | ok() | error().
+
+?DOC("A successful result with its associated value").
 -type ok()      ::  ok(any()).
+
+?DOC("A failure result with its associated reason").
 -type error()   ::  error(any()).
 -type ok(T)     ::  {ok, T}.
 -type error(T)  ::  {error, T}.
@@ -65,8 +82,8 @@
 -export([values/1]).
 
 
-
 -compile({no_auto_import, [error/1]}).
+
 
 
 %% =============================================================================
@@ -74,30 +91,27 @@
 %% =============================================================================
 
 
-%% -----------------------------------------------------------------------------
-%% @doc
-%% @end
-%% -----------------------------------------------------------------------------
+
+?DOC("Creates a successful result.").
 -spec ok(Value :: any()) -> ok().
 
 ok(Value) ->
     {ok, Value}.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Creates a failed result.").
 -spec error(Error :: any()) -> error().
 
 error(Error) ->
     {error, Error}.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Wraps a term in a result.
+
+If the term is already a result, it is returned as-is. If the term is `ok`,
+it returns `ok`; otherwise it wraps the term in `{ok, Term}`.
+""").
 -spec result(Term :: any()) -> t().
 
 result(ok) -> ok;
@@ -107,12 +121,12 @@ result(Term) -> ok(Term).
 
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Combines a list of results into a single result.
-%% If all elements in the list are `ok` then returns an `ok` holding the list of
-%% values. If any element is `errore then returns the first `error`.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Combines a list of results into a single result.
+
+If all elements in the list are `ok` then returns an `ok` holding the list of
+values. If any element is an error then returns the first `error`.
+""").
 -spec all([t()]) -> t().
 
 all(Results) when is_list(Results) ->
@@ -135,10 +149,9 @@ all(Results) when is_list(Results) ->
     end.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Merges a nested result into a single layer.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Flattens nested results (e.g., `{ok, {ok, Value}}`) into a single-layer result.
+""").
 -spec flatten(t()) -> t().
 
 flatten({ok, {ok, _} = Result}) ->
@@ -157,10 +170,7 @@ flatten({error, _} = Result) ->
     Result.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Checks whether the result is an `error` value.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Returns `true` if the result is an error.").
 -spec is_error(t()) -> boolean().
 
 is_error(ok) -> false;
@@ -168,10 +178,7 @@ is_error({ok, _}) -> false;
 is_error({error, _}) -> true.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Checks whether the result is an `ok` value.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Returns `true` if the result is an successful.").
 -spec is_ok(t()) -> boolean().
 
 is_ok(ok) -> true;
@@ -179,11 +186,10 @@ is_ok({ok, _}) -> true;
 is_ok({error, _}) -> false.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Returns the first value if it is `ok`, otherwise evaluates the given
-%% function for a fallback value.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Returns the original result if it's `ok`, otherwise calls the provided function
+to return an alternative result.
+""").
 -spec lazy_or(Result :: t(), Fun :: fun(() -> t())) -> t().
 
 lazy_or(ok = Result, Fun) when is_function(Fun, 0) ->
@@ -196,11 +202,10 @@ lazy_or({error, _}, Fun) when is_function(Fun, 0) ->
     Fun().
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Extracts the `ok` value from a result, evaluating the default function
-%% if the result is an `error`.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Returns the value of the result if it's `ok`, otherwise calls the fallback
+function.
+""").
 -spec lazy_unwrap(Result :: t(), Fun :: fun(() -> t())) -> any().
 
 lazy_unwrap(ok, Fun) when is_function(Fun, 0) ->
@@ -212,12 +217,9 @@ lazy_unwrap({ok, Value}, Fun) when is_function(Fun, 0) ->
 lazy_unwrap({error, _}, Fun) when is_function(Fun, 0) ->
     Fun().
 
-
-%% -----------------------------------------------------------------------------
-%% @doc Returns the result if it is `ok`, otherwise raises an exception with the
-%% error value.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Returns the result if successful, otherwise raises the error.
+""").
 -spec raise_or(t()) -> ok() | no_return().
 
 raise_or(ok = Result) ->
@@ -230,11 +232,7 @@ raise_or({error, Reason}) ->
     erlang:error(Reason).
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Returns the result value if it is `ok`, otherwise raises an exception
-%% with the error value.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Extracts the `ok` value or raises the error if not present.").
 -spec raise_or_unwrap(t()) -> any() | no_return().
 
 raise_or_unwrap(ok) ->
@@ -246,15 +244,9 @@ raise_or_unwrap({ok, Value}) ->
 raise_or_unwrap({error, Reason}) ->
     erlang:error(Reason).
 
-
-%% -----------------------------------------------------------------------------
-%% @doc Updates a value held within the `ok` of a result by calling a given
-%% function on it.
-%% If the result is an `error` rather than `ok` the function is not called and
-%% the result stays the same.
-%% @end
-%% -----------------------------------------------------------------------------
-
+?DOC("""
+Applies a function to the value inside `ok`. Errors are returned unchanged.
+""").
 -spec map(Result :: t(), fun((any()) -> any())) -> error() | any().
 
 map(ok, Fun) when is_function(Fun, 1) ->
@@ -267,16 +259,11 @@ map({error, _} = Result, Fun) when is_function(Fun, 1) ->
     Result.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Updates a value held within the `error` of a result by calling a given
-%% function on it.
-%% If the result is `ok`rather than `error` the function is not called and the
-%% result stays the same.
-%% @end
-%% -----------------------------------------------------------------------------
-
+?DOC("""
+Applies a function to the value inside `error`. Successful results are
+returned unchanged.
+""").
 -spec map_error(Result :: t(), fun((any()) -> any())) -> error() | any().
-
 map_error(ok = Result, Fun) when is_function(Fun, 1) ->
     Result;
 
@@ -287,11 +274,7 @@ map_error({error, Error}, Fun) when is_function(Fun, 1) ->
     {error, Fun(Error)}.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Transforms any error into `error(undefined)`.
-%% @end
-%% -----------------------------------------------------------------------------
-
+?DOC("Converts any error to `{error, undefined}`.").
 -spec undefined_error(Result :: t()) -> ok() | error(undefined).
 
 undefined_error(ok = Result) ->
@@ -304,11 +287,7 @@ undefined_error({error, _}) ->
     error(undefined).
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Returns the first value if it is `ok`, otherwise returns the second
-%% value.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Returns the first result if successful, otherwise the second.").
 -spec or_else(First :: t(), Second :: t()) -> t().
 
 or_else(ok = Result, _) -> Result;
@@ -318,14 +297,10 @@ or_else(_, {ok, _} = Result) -> Result;
 or_else(_, {error, _} = Result) -> Result.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Given a list of results, returns a pair where the first element is a
-%% list of all the values inside `ok` and the second element is a list with all
-%% the values inside `error`.
-%%  The values in both lists appear in reverse order with respect to their
-%%  position in the original list of results.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Separates a list of results into a tuple with all successes and all errors.
+The lists are in reverse order of their appearance.
+""").
 -spec partition(Results :: [t()]) -> {[any()], [any()]} | no_return().
 
 partition(Results) ->
@@ -348,10 +323,7 @@ partition(Results) ->
     ).
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Replace the value within a result.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Replaces the value inside a successful result.").
 -spec replace(Result :: t(), Value :: any()) -> t().
 
 replace(ok, Value) -> {ok, Value};
@@ -359,10 +331,7 @@ replace({ok, _}, Value) -> {ok, Value};
 replace({error, _} = Result, _) -> Result.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Replace the error within a result
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("Replaces the value inside a failed result.").
 -spec replace_error(Result :: t(), Error :: any()) -> t().
 
 replace_error(ok = Result, _) -> Result;
@@ -370,28 +339,20 @@ replace_error({ok, _} = Result, _) -> Result;
 replace_error({error, _}, Error) -> {error, Error}.
 
 
-
-%% -----------------------------------------------------------------------------
-%% @doc An alias for `try/2`.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("An alias for `try/2`.").
 -spec then(Result :: t(), Fun :: fun((any()) -> t())) -> t() | no_return().
 
 then(Result, Fun) -> 'try'(Result, Fun).
 
-%% -----------------------------------------------------------------------------
-%% @doc An alias for `try_recover/2`.
-%% @end
-%% -----------------------------------------------------------------------------
+
+?DOC("An alias for `try_recover/2`.").
 -spec then_recover(Result :: t(), Fun :: fun((any()) -> t())) ->
     t() | no_return().
 
 then_recover(Result, Fun) -> try_recover(Result, Fun).
 
-%% -----------------------------------------------------------------------------
-%% @doc An alias for `try_both/3`.
-%% @end
-%% -----------------------------------------------------------------------------
+
+?DOC("An alias for `try_both/2`.").
 -spec then_both(
     Result :: t(),
     Fun :: fun((any()) -> t()),
@@ -400,18 +361,10 @@ then_recover(Result, Fun) -> try_recover(Result, Fun).
 then_both(Result, Fun, RecoverFun) -> try_both(Result, Fun, RecoverFun).
 
 
-%% -----------------------------------------------------------------------------
-%% @doc “Updates” an `ok` result by passing its value to a function that yields
-%% \a result, and returning the yielded result. (This may “replace” the `ok`
-%%  with an `error`).
-%%
-%%  If the input is an `error` rather than an `ok`, the function is not called
-%%  and the original `error` is returned.
-%%
-%%  This function is the equivalent of calling `map/2` followed by `flatten/1`,
-%%  and it is useful for chaining together multiple functions that may fail.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Applies a function to the value inside a successful result, returning its result.
+Errors are returned unchanged.
+""").
 -spec 'try'(Result :: t(), Fun :: fun((any()) -> t())) -> t() | no_return().
 
 'try'(ok = Result, Fun) when is_function(Fun, 1) ->
@@ -424,18 +377,10 @@ then_both(Result, Fun, RecoverFun) -> try_both(Result, Fun, RecoverFun).
     Result.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Updates a value held within the Error of a result by calling a given
-%% function on it, where the given function also returns a result. The two
-%% results are then merged together into one result.
-%%
-%% If the result is an Ok rather than Error the function is not called and the
-%% result stays the same.
-%%
-%% This function is useful for chaining together computations that may fail and
-%% trying to recover from possible errors.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Applies a function to the value inside an error, returning its result.
+Success values are returned unchanged.
+""").
 -spec try_recover(Result :: t(), Fun :: fun((any()) -> t())) ->
     t() | no_return().
 
@@ -448,13 +393,11 @@ try_recover({ok, _} = Result, Fun) when is_function(Fun, 1) ->
 try_recover({error, _} = Result, Fun) when is_function(Fun, 1) ->
     eval_result(Result, Fun).
 
-%% -----------------------------------------------------------------------------
-%% @doc Updates an `ok' result by passing its value to a `fun' that yields
-%% a result, and returning the yielded result. If the input is an `error' rather
-%% than an `ok', updates a value held within the `error` of a result by calling
-%% `recover_fun' on it, where the given function also returns a result.
-%% @end
-%% -----------------------------------------------------------------------------
+
+?DOC("""
+Applies a function to the value inside a successful result.
+If it's an error, applis a recovery function instead.
+""").
 -spec try_both(
     Result :: t(),
     Fun :: fun((any()) -> t()),
@@ -469,31 +412,27 @@ try_both({ok, _} = Result, Fun, _) ->
 try_both({error, _} = Result, _, RecoverFun) ->
     try_recover(Result, RecoverFun).
 
-%% -----------------------------------------------------------------------------
-%% @doc Extracts the Ok value from a result, returning a `undefined` if the
-%% result is an Error.
-%% @end
-%% -----------------------------------------------------------------------------
+
+?DOC("""
+Returns the `ok` value or `undefined` if the result is an error.
+""").
 -spec unwrap(Result :: t()) -> any().
 unwrap(Result) ->
     unwrap(Result, undefined).
 
-%% -----------------------------------------------------------------------------
-%% @doc Extracts the Ok value from a result, returning a default value if the
-%% result is an Error.
-%% @end
-%% -----------------------------------------------------------------------------
+
+?DOC("""
+Returns the `ok` value or the given default value if it's an error.
+""").
 -spec unwrap(Result :: t(), Default :: any()) -> any().
 
 unwrap(ok, _) -> undefined;
 unwrap({ok, Value}, _) -> Value;
 unwrap({error, _}, Default) -> Default.
 
-
-%% -----------------------------------------------------------------------------
-%% @doc Extracts the inner value from a result.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Returns either the `ok` or `error` value, whichever is present.
+""").
 -spec unwrap_both(Result :: t()) -> any().
 
 unwrap_both(ok) -> undefined;
@@ -501,12 +440,9 @@ unwrap_both({ok, Value}) -> Value;
 unwrap_both({error, Error}) -> Error.
 
 
-
-%% -----------------------------------------------------------------------------
-%% @doc Extracts the Error value from a result, returning a default value if the
-%% result is an Ok.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Returns the `error` value or the default if it's an `ok`.
+""").
 -spec unwrap_error(Result :: t(), Default :: any()) -> any().
 
 unwrap_error(ok, Default) -> Default;
@@ -514,10 +450,9 @@ unwrap_error({ok, _}, Default) -> Default;
 unwrap_error({error, Error}, _) -> Error.
 
 
-%% -----------------------------------------------------------------------------
-%% @doc Given a list of results, returns only the values inside Ok.
-%% @end
-%% -----------------------------------------------------------------------------
+?DOC("""
+Returns all the values inside `ok` results from a list of results.
+""").
 -spec values(Results :: [t()]) -> [any()].
 
 values(Results) ->
@@ -534,6 +469,7 @@ values(Results) ->
 %% =============================================================================
 %% PRIVATE
 %% =============================================================================
+
 
 
 eval_result(Result0, Fun) when is_function(Fun, 0) ->
