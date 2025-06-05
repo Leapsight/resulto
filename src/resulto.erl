@@ -58,6 +58,7 @@
 -export([try_both/3]).
 -export([try_recover/2]).
 -export([undefined_error/1]).
+-export([unwrap/1]).
 -export([unwrap/2]).
 -export([unwrap_both/1]).
 -export([unwrap_error/2]).
@@ -468,7 +469,14 @@ try_both({ok, _} = Result, Fun, _) ->
 try_both({error, _} = Result, _, RecoverFun) ->
     try_recover(Result, RecoverFun).
 
-
+%% -----------------------------------------------------------------------------
+%% @doc Extracts the Ok value from a result, returning a `undefined` if the
+%% result is an Error.
+%% @end
+%% -----------------------------------------------------------------------------
+-spec unwrap(Result :: t()) -> any().
+unwrap(Result) ->
+    unwrap(Result, undefined).
 
 %% -----------------------------------------------------------------------------
 %% @doc Extracts the Ok value from a result, returning a default value if the
