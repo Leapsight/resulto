@@ -1,0 +1,4 @@
+[codespell]
+skip = .git,_build,_data,./deps,doc,./priv/plts,./erl_crash.dump
+ignore-words = ./.codespell-ignore
+ignore-words-list = applys,nd,accout,mattern,pres,fo,crate,ser
