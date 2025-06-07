@@ -66,6 +66,8 @@ failure (`{error, Reason}`).
 -export([partition/1]).
 -export([raise_or/1]).
 -export([raise_or_unwrap/1]).
+-export([throw_or/1]).
+-export([throw_or_unwrap/1]).
 -export([replace/2]).
 -export([replace_error/2]).
 -export([result/1]).
@@ -243,6 +245,35 @@ raise_or_unwrap({ok, Value}) ->
 
 raise_or_unwrap({error, Reason}) ->
     erlang:error(Reason).
+
+
+?DOC("""
+Returns the result if successful, otherwise throws the error.
+""").
+-spec throw_or(t()) -> ok() | no_return().
+
+throw_or(ok = Result) ->
+    Result;
+
+throw_or({ok, _} = Result) ->
+    Result;
+
+throw_or({error, Reason}) ->
+    throw(Reason).
+
+
+?DOC("Extracts the `ok` value or raises the error if not present.").
+-spec throw_or_unwrap(t()) -> any() | no_return().
+
+throw_or_unwrap(ok) ->
+    undefined;
+
+throw_or_unwrap({ok, Value}) ->
+    Value;
+
+throw_or_unwrap({error, Reason}) ->
+    throw(Reason).
+
 
 ?DOC("""
 Applies a function to the value inside `ok`. Errors are returned unchanged.
