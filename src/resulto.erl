@@ -137,6 +137,7 @@ all(Results) when is_list(Results) ->
             fun
                 ({ok, Value}, Acc) ->
                     [Value | Acc];
+
                 ({error, _} = Result, _) ->
                     throw(Result)
             end,
@@ -155,6 +156,9 @@ all(Results) when is_list(Results) ->
 Flattens nested results (e.g., `{ok, {ok, Value}}`) into a single-layer result.
 """).
 -spec flatten(t()) -> t().
+
+flatten(ok) ->
+    ok;
 
 flatten({ok, {ok, _} = Result}) ->
     flatten(Result);
